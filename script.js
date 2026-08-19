@@ -5,39 +5,71 @@ const turnIndicator = document.getElementById('turn-indicator');
 const functionInput = document.getElementById('functionInput');
 const fireBtn = document.getElementById('fireBtn');
 
-// Grid configuration
-const GRID_SIZE = 100;
-const CANVAS_SIZE = canvas.width;
-const SCALE = CANVAS_SIZE / GRID_SIZE;
+const CANVAS_WIDTH = canvas.width;  // 1200
+const CANVAS_HEIGHT = canvas.height; // 600
 
-const PLAYER_RADIUS = 1.5;
-const OBSTACLE_COUNT = Math.floor(Math.random() * 4) + 3; // Obstacles amount
+const X_MIN = -50;
+const X_MAX = 50;
+const Y_MIN = -25;
+const Y_MAX = 25;
 
-let currentPlayer = 1;
+const SCALE_X = CANVAS_WIDTH / (X_MAX - X_MIN);
+const SCALE_Y = CANVAS_HEIGHT / (Y_MAX - Y_MIN);
+
+const PLAYER_RADIUS = 1.0;
+const OBSTACLE_COUNT = Math.floor(Math.random() * 5) + 6;
+
+let currentPlayer = 1; // 1 or 2
 let isAnimating = false;
 
-const p1 = { x: 10, y: 50 };
-const p2 = { x: 90, y: 50 };
-
+let p1 = { x: 0, y: 0 };
+let p2 = { x: 0, y: 0 };
 let obstacles = [];
+
+// Pixel to grid
+function gridToCanvas(gx, gy) {
+    return {
+        x: (gx - X_MIN) * SCALE_X,
+        y: CANVAS_HEIGHT - ((gy - Y_MIN) * SCALE_Y)
+    };
+}
+
+function randomizePlayers() {
+    let valid = false;
+    while (!valid) {
+        p1.x = Math.random() * 80 - 40;
+        p1.y = Math.random() * 40 - 20;
+
+        p2.x = Math.random() * 80 - 40;
+        p2.y = Math.random() * 40 - 20;
+
+        const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+        if (dist >= 70) {
+            valid = true;
+        }
+    }
+}
 
 function generateObstacles() {
     obstacles = [];
-    for (let i = 0; i < OBSTACLE_COUNT; i++) {
+    const count = Math.floor(Math.random() * 5) + 6;
+
+    for (let i = 0; i < count; i++) {
         let obs;
         let valid = false;
-        
+
         while (!valid) {
-            const radius = (Math.random() * 3 + 3) * PLAYER_RADIUS;
-            const x = Math.random() * (GRID_SIZE - 40) + 20;
-            const y = Math.random() * (GRID_SIZE - 20) + 10;
-            
+            const radius = (Math.random() * 2 + 2) * PLAYER_RADIUS;
+            const x = Math.random() * 80 - 40;
+            const y = Math.random() * 40 - 20;
+
             obs = { x, y, radius };
-            
+
             const distP1 = Math.hypot(obs.x - p1.x, obs.y - p1.y);
             const distP2 = Math.hypot(obs.x - p2.x, obs.y - p2.y);
-            
-            if (distP1 > obs.radius + 5 && distP2 > obs.radius + 5) {
+
+            // Obstacle unoverlapping with players
+            if (distP1 > obs.radius + PLAYER_RADIUS + 3 && distP2 > obs.radius + PLAYER_RADIUS + 3) {
                 valid = true;
             }
         }
@@ -45,34 +77,61 @@ function generateObstacles() {
     }
 }
 
-function gridToCanvas(gx, gy) {
-    return {
-        x: gx * SCALE,
-        y: CANVAS_SIZE - (gy * SCALE)
-    };
-}
-
 function drawGrid() {
     ctx.strokeStyle = '#222222';
     ctx.lineWidth = 1;
+    ctx.fillStyle = '#666666';
+    ctx.font = '10px monospace';
 
-    for (let i = 0; i <= GRID_SIZE; i += 10) {
-        const start = gridToCanvas(i, 0);
-        const end = gridToCanvas(i, GRID_SIZE);
+    for (let x = X_MIN; x <= X_MAX; x += 5) {
+        const start = gridToCanvas(x, Y_MIN);
+        const end = gridToCanvas(x, Y_MAX);
 
         ctx.beginPath();
         ctx.moveTo(start.x, start.y);
         ctx.lineTo(end.x, end.y);
         ctx.stroke();
 
-        const startH = gridToCanvas(0, i);
-        const endH = gridToCanvas(GRID_SIZE, i);
+        if (x !== 0) {
+            const labelPos = gridToCanvas(x, 0);
+            ctx.fillText(x.toString(), labelPos.x - 6, labelPos.y + 12);
+        }
+    }
+
+    for (let y = Y_MIN; y <= Y_MAX; y += 5) {
+        const start = gridToCanvas(X_MIN, y);
+        const end = gridToCanvas(X_MAX, y);
 
         ctx.beginPath();
-        ctx.moveTo(startH.x, startH.y);
-        ctx.lineTo(endH.x, endH.y);
+        ctx.moveTo(start.x, start.y);
+        ctx.lineTo(end.x, end.y);
         ctx.stroke();
+
+        if (y !== 0) {
+            const labelPos = gridToCanvas(0, y);
+            ctx.fillText(y.toString(), labelPos.x + 4, labelPos.y + 4);
+        }
     }
+
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+
+    const yAxisStart = gridToCanvas(0, Y_MIN);
+    const yAxisEnd = gridToCanvas(0, Y_MAX);
+    ctx.beginPath();
+    ctx.moveTo(yAxisStart.x, yAxisStart.y);
+    ctx.lineTo(yAxisEnd.x, yAxisEnd.y);
+    ctx.stroke();
+
+    const xAxisStart = gridToCanvas(X_MIN, 0);
+    const xAxisEnd = gridToCanvas(X_MAX, 0);
+    ctx.beginPath();
+    ctx.moveTo(xAxisStart.x, xAxisStart.y);
+    ctx.lineTo(xAxisEnd.x, xAxisEnd.y);
+    ctx.stroke();
+
+    const originPos = gridToCanvas(0, 0);
+    ctx.fillText('(0,0)', originPos.x + 4, originPos.y + 12);
 }
 
 function drawPlayers() {
@@ -80,14 +139,14 @@ function drawPlayers() {
     const p1Canvas = gridToCanvas(p1.x, p1.y);
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(p1Canvas.x, p1Canvas.y, PLAYER_RADIUS * SCALE, 0, Math.PI * 2);
+    ctx.arc(p1Canvas.x, p1Canvas.y, PLAYER_RADIUS * SCALE_X, 0, Math.PI * 2);
     ctx.fill();
 
     // Player 2
     const p2Canvas = gridToCanvas(p2.x, p2.y);
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(p2Canvas.x, p2Canvas.y, PLAYER_RADIUS * SCALE, 0, Math.PI * 2);
+    ctx.arc(p2Canvas.x, p2Canvas.y, PLAYER_RADIUS * SCALE_X, 0, Math.PI * 2);
     ctx.fill();
 }
 
@@ -96,13 +155,13 @@ function drawObstacles() {
     for (const obs of obstacles) {
         const obsCanvas = gridToCanvas(obs.x, obs.y);
         ctx.beginPath();
-        ctx.arc(obsCanvas.x, obsCanvas.y, obs.radius * SCALE, 0, Math.PI * 2);
+        ctx.arc(obsCanvas.x, obsCanvas.y, obs.radius * SCALE_X, 0, Math.PI * 2);
         ctx.fill();
     }
 }
 
 function render() {
-    ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     drawGrid();
     drawObstacles();
     drawPlayers();
@@ -134,15 +193,16 @@ function fireFunction() {
 
     const shooter = currentPlayer === 1 ? p1 : p2;
     const target = currentPlayer === 1 ? p2 : p1;
-    const direction = currentPlayer === 1 ? 1 : -1;
+    const direction = shooter.x <= target.x ? 1 : -1;
 
     let points = [];
     let hitOpponent = false;
     let hitObstacle = false;
 
-    const step = 0.2; // Step resolution
+    const step = 0.1; // Step resolution in grid units
     let maxDistance = 100;
 
+    // Shoot from player's position
     for (let dx = 0; dx <= maxDistance; dx += step) {
         const xRel = dx * direction;
         const yRel = evaluateFunction(expr, xRel);
@@ -152,28 +212,30 @@ function fireFunction() {
         const gridX = shooter.x + xRel;
         const gridY = shooter.y + yRel;
 
-        // Grid boundry check
-        if (gridX < 0 || gridX > GRID_SIZE || gridY < 0 || gridY > GRID_SIZE) {
+        // Graph bounds check
+        if (gridX < X_MIN || gridX > X_MAX || gridY < Y_MIN || gridY > Y_MAX) {
             break;
         }
 
         points.push({ x: gridX, y: gridY });
 
-        // Collision check (obstacles)
-        for (const obs of obstacles) {
-            const dist = Math.hypot(gridX - obs.x, gridY - obs.y);
-            if (dist <= obs.radius) {
-                hitObstacle = true;
+        if (dx > PLAYER_RADIUS * 1.5) {
+            // Obstacle collision check
+            for (const obs of obstacles) {
+                const dist = Math.hypot(gridX - obs.x, gridY - obs.y);
+                if (dist <= obs.radius) {
+                    hitObstacle = true;
+                    break;
+                }
+            }
+            if (hitObstacle) break;
+
+            // Opponent collision check
+            const distTarget = Math.hypot(gridX - target.x, gridY - target.y);
+            if (distTarget <= PLAYER_RADIUS) {
+                hitOpponent = true;
                 break;
             }
-        }
-        if (hitObstacle) break;
-
-        // Collision check (player)
-        const distTarget = Math.hypot(gridX - target.x, gridY - target.y);
-        if (distTarget <= PLAYER_RADIUS) {
-            hitOpponent = true;
-            break;
         }
     }
 
@@ -188,7 +250,7 @@ function fireFunction() {
 function animateLine(points, hitOpponent) {
     isAnimating = true;
     let currentIndex = 0;
-    const speed = 2;
+    const speed = 3; // Line segments per frame
 
     function step() {
         render();
@@ -213,7 +275,7 @@ function animateLine(points, hitOpponent) {
             requestAnimationFrame(step);
         } else {
             isAnimating = false;
-            
+
             if (hitOpponent) {
                 setTimeout(() => {
                     alert(`PLAYER ${currentPlayer} WINS!`);
@@ -236,6 +298,7 @@ function switchTurn() {
 function resetGame() {
     currentPlayer = 1;
     turnIndicator.textContent = "Player 1's Turn";
+    randomizePlayers();
     generateObstacles();
     render();
 }
@@ -245,5 +308,4 @@ functionInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') fireFunction();
 });
 
-generateObstacles();
-render();
+resetGame();
