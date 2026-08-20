@@ -135,16 +135,25 @@ function drawGrid() {
 }
 
 function drawPlayers() {
+    // Label font
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '12px monospace';
+    ctx.textAlign = 'center';
+
     // Player 1
     const p1Canvas = gridToCanvas(p1.x, p1.y);
-    ctx.fillStyle = '#ffffff';
+    
+    ctx.fillText("Player 1", p1Canvas.x, p1Canvas.y - (PLAYER_RADIUS * SCALE_X) - 8);
+
     ctx.beginPath();
     ctx.arc(p1Canvas.x, p1Canvas.y, PLAYER_RADIUS * SCALE_X, 0, Math.PI * 2);
     ctx.fill();
 
     // Player 2
     const p2Canvas = gridToCanvas(p2.x, p2.y);
-    ctx.fillStyle = '#ffffff';
+    
+    ctx.fillText("Player 2", p2Canvas.x, p2Canvas.y - (PLAYER_RADIUS * SCALE_X) - 8);
+
     ctx.beginPath();
     ctx.arc(p2Canvas.x, p2Canvas.y, PLAYER_RADIUS * SCALE_X, 0, Math.PI * 2);
     ctx.fill();
