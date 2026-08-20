@@ -3,3 +3,5 @@
 ### The game itself is inspired by Graphwar. It's a perfect game to strengthen your mathematics skills, the only limit is your imagination.
 
 ### We'll consider mobile support
+
+Github Page: https://riddlewaffles.github.io/Linear-Duel/
