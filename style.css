@@ -80,26 +80,6 @@ button:hover {
     color: #888888;
 }
 
-/* footer */
-#footer{
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    z-index: 9999;
-}
-
-a:link{
-    color: #f2af29;
-}
-
-a:visited{
-    color: #ffbf00;
-}
-
-a:hover{
-    color: #fed766;
-}
-
 a:active{
     color: #fe7b00;
 }
