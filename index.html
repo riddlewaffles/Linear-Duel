@@ -4,27 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Linear Duel</title>
-    <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="icon.png">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="game-container">
-        <div id="turn-indicator">Player 1's Turn</div>
-
-        <canvas id="gameCanvas" width="1200" height="600"></canvas>
-
-        <div id="controls">
-            <div class="input-group">
-                <label for="functionInput">f(x) = </label>
-                <input type="text" id="functionInput" placeholder="Enter a function of x">
-                <button id="fireBtn">Beam</button>
-            </div>
-
-            <div class="hint">
-                Supported: x, +, -, *, /, ^, sin(), cos(), tan(), sqrt(), abs()
-            </div>
+    <aside id="sidebar">
+        <h2 id="turn-indicator">Player 1</h2>
+        
+        <div class="input-group">
+            <label for="functionInput">f(x) = </label>
+            <input type="text" id="functionInput" placeholder="e.g. 2*x + 5" autofocus>
+            <button id="fireBtn">Fire</button>
         </div>
-    </div>
+
+        <div class="hint">
+            <strong>Supported:</strong><br>
+            x, +, -, *, /, ^, sin(), cos(), tan(), sqrt(), abs()
+        </div>
+
+        <div id="coord-info" class="coord-display">Hover over a player to see coordinates</div>
+    </aside>
+
+    <main id="game-container">
+        <canvas id="gameCanvas"></canvas>
+    </main>
 
     <script src="script.js"></script>
 </body>
